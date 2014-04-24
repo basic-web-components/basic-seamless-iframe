@@ -1,0 +1,113 @@
+<!--
+An iframe that automatically makes itself as tall as the contained page.
+
+Note: modern iframes should support a "seamless" attribute that should do
+exactly what this element does. However, none of the browsers that claim to
+support it seem to do anything really useful with it. (E.g., they just hide the
+frame border, but don't resize the frame.)
+
+TODO: Extend an HTML iframe element directly?
+TODO: Give contained pages on the same domain more direct ways to cooperatively
+communicate with this element.
+-->
+
+<link rel="import" href="../bower/polymer/polymer.html">
+
+<polymer-element name="basic-seamless-iframe" attributes="content src">
+
+<template>
+
+  <style>
+  :host {
+    display: block;
+  }
+
+  #iframe {
+    border: none;
+    display: block;
+    height: 0;
+    width: 100%;
+  }
+  </style>
+
+  <iframe id="iframe" src="{{src}}" scrolling="no"></iframe>
+
+</template>
+
+<script>
+Polymer( "basic-seamless-iframe", {
+
+  // TODO: This currently inspects the framed page, which is only permissible
+  // on pages of the same domain. In cases where the framed page is hosting a
+  // basic-autosize-iframe-content element, that element should also share its
+  // height across the frame boundary when it does its postMessage.
+  autoSize: function() {
+    var page = this.$.iframe.contentDocument.querySelector( "html" );
+    if ( page ) {
+      // To get the page height, some StackOverflow solutions suggest using
+      // scrollHeight, but Firefox always returns a scrollHeight of 0.
+      // offsetHeight seems to work better.
+      var frameHeight = Math.ceil( page.offsetHeight ) + "px";
+      this.$.iframe.style.height = frameHeight;
+    }
+  },
+
+  contentChanged: function() {
+    this._updateFramedContent();
+  },
+
+  frameReady: false,
+
+  get iframe() {
+    return this.$.iframe;
+  },
+
+  ready: function() {
+    window.addEventListener( "resize", function() {
+      if ( this.clientWidth !== this._clientWidth ) {
+        this.autoSize();
+        this._clientWidth = this.clientWidth;
+      }
+    }.bind( this ));
+
+    // TODO: Reraise the load event.
+    // this.dispatchEvent( new CustomEvent( "load" ));
+
+    // TODO: Only the demo on an active page should respond to this message.
+    window.addEventListener( "message", function( event ) {
+      if ( event.data === "frameContentChanged" ) {
+        this.autoSize();
+      } else if ( event.data === "framePolymerReady" ) {
+        this.frameReady = true;
+        this._updateFramedContent();
+      }
+    }.bind( this ), false );
+  },
+
+  // Track the last known width of this element.
+  _clientWidth: null,
+
+  _framedContentChanged: function() {
+    // HACK: Even thought the frame says it's done loading, if we inspect the
+    // height immediately, it's close but not quite right. Something still
+    // hasn't finished rendering (perhaps Polymer's still upgrading
+    // elements?). We give the frame another event tick to finish rendering
+    // before we do our auto-size.
+    setTimeout( function() {
+      this.autoSize();
+    }.bind( this ), 1 );
+  },
+
+  _updateFramedContent: function() {
+    if ( this.frameReady ) {
+      this.$.iframe.contentWindow.postMessage({
+        message: "setContent",
+        content: this.content
+      }, "*" );
+    }
+  }
+
+});
+</script>
+
+</polymer-element>
