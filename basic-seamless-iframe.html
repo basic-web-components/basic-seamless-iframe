@@ -11,7 +11,7 @@ TODO: Give contained pages on the same domain more direct ways to cooperatively
 communicate with this element.
 -->
 
-<link rel="import" href="../bower/polymer/polymer.html">
+<link rel="import" href="../polymer/polymer.html">
 
 <polymer-element name="basic-seamless-iframe" attributes="content src">
 
@@ -52,7 +52,12 @@ Polymer( "basic-seamless-iframe", {
     }
   },
 
+  content: null,
+
   contentChanged: function() {
+    if ( !this.frameReady ) {
+      this._contentUpdatedPending = true;
+    }
     this._updateFramedContent();
   },
 
@@ -73,13 +78,13 @@ Polymer( "basic-seamless-iframe", {
     // TODO: Reraise the load event.
     // this.dispatchEvent( new CustomEvent( "load" ));
 
-    // TODO: Only the demo on an active page should respond to this message.
     window.addEventListener( "message", function( event ) {
-      if ( event.data === "frameContentChanged" ) {
+      if ( event.data === "framedContentChanged" ) {
         this.autoSize();
-      } else if ( event.data === "framePolymerReady" ) {
+      } else if ( event.data === "framedPolymerReady" ) {
         this.frameReady = true;
         this._updateFramedContent();
+        this.autoSize();
       }
     }.bind( this ), false );
   },
@@ -87,23 +92,26 @@ Polymer( "basic-seamless-iframe", {
   // Track the last known width of this element.
   _clientWidth: null,
 
+  _contentUpdatedPending: false,
+
   _framedContentChanged: function() {
     // HACK: Even thought the frame says it's done loading, if we inspect the
     // height immediately, it's close but not quite right. Something still
-    // hasn't finished rendering (perhaps Polymer's still upgrading
-    // elements?). We give the frame another event tick to finish rendering
-    // before we do our auto-size.
+    // hasn't finished rendering (perhaps Polymer's still upgrading elements?).
+    // We give the frame another event tick to finish rendering before we do our
+    // auto-size.
     setTimeout( function() {
       this.autoSize();
     }.bind( this ), 1 );
   },
 
   _updateFramedContent: function() {
-    if ( this.frameReady ) {
+    if ( this.frameReady && this._contentUpdatedPending ) {
       this.$.iframe.contentWindow.postMessage({
         message: "setContent",
         content: this.content
       }, "*" );
+      this._contentUpdatedPending = false;
     }
   }
 
