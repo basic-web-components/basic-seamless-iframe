@@ -19,13 +19,35 @@ input {
 body {
   margin: 0.5in;
 }
+
+#frame {
+  border: 1px solid gray;
+  box-sizing: border-box;
+}
 </style>
+
+<script>
+window.addEventListener( "polymer-ready", function() {
+  var frame = document.querySelector( "#frame" );
+  var contentCopy = document.querySelector( "#contentCopy" );
+  frame.addEventListener( "framedContentChanged", function( event ) {
+    contentCopy.innerHTML = event.detail;
+  });
+});
+</script>
 
 </head>
 
 <body unresolved>
-  <basic-seamless-iframe src="framed.html">
+  <p>
+    The page below is in an iframe:
+  </p>
+  <basic-seamless-iframe id="frame" src="framed.html">
   </basic-seamless-iframe>
+  <p>
+    The current interesting content inside the frame is:
+  </p>
+  <div id="contentCopy"></div>
 </body>
 
 </html>

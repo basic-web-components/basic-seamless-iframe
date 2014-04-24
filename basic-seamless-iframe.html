@@ -6,6 +6,12 @@ exactly what this element does. However, none of the browsers that claim to
 support it seem to do anything really useful with it. (E.g., they just hide the
 frame border, but don't resize the frame.)
 
+If the framed page contains a basic-framed-content element, this element will
+communicate with that inner element. Setting the framedContent property on this
+element will pass the content to the basic-framed-content element. If the inner
+basic-framed-content's content changes, it will let this element know, and this
+element will raise a framedContentChanged event.
+
 TODO: Extend an HTML iframe element directly?
 TODO: Give contained pages on the same domain more direct ways to cooperatively
 communicate with this element.
@@ -13,7 +19,7 @@ communicate with this element.
 
 <link rel="import" href="../polymer/polymer.html">
 
-<polymer-element name="basic-seamless-iframe" attributes="content src">
+<polymer-element name="basic-seamless-iframe" attributes="src">
 
 <template>
 
@@ -52,12 +58,8 @@ Polymer( "basic-seamless-iframe", {
     }
   },
 
-  content: null,
-
-  contentChanged: function() {
-    if ( !this.frameReady ) {
-      this._contentUpdatedPending = true;
-    }
+  setFramedContent: function( content ) {
+    this._pendingContent = content;
     this._updateFramedContent();
   },
 
@@ -79,12 +81,16 @@ Polymer( "basic-seamless-iframe", {
     // this.dispatchEvent( new CustomEvent( "load" ));
 
     window.addEventListener( "message", function( event ) {
-      if ( event.data === "framedContentChanged" ) {
-        this.autoSize();
-      } else if ( event.data === "framedPolymerReady" ) {
-        this.frameReady = true;
-        this._updateFramedContent();
-        this.autoSize();
+      switch ( event.data && event.data.message ) {
+
+        case "framedContentChanged":
+          this._framedContentChanged( event.data.content );
+
+        case "framedPolymerReady":
+          this.frameReady = true;
+          this._updateFramedContent();
+          this.autoSize();
+
       }
     }.bind( this ), false );
   },
@@ -92,9 +98,7 @@ Polymer( "basic-seamless-iframe", {
   // Track the last known width of this element.
   _clientWidth: null,
 
-  _contentUpdatedPending: false,
-
-  _framedContentChanged: function() {
+  _framedContentChanged: function( framedContent ) {
     // HACK: Even thought the frame says it's done loading, if we inspect the
     // height immediately, it's close but not quite right. Something still
     // hasn't finished rendering (perhaps Polymer's still upgrading elements?).
@@ -102,16 +106,22 @@ Polymer( "basic-seamless-iframe", {
     // auto-size.
     setTimeout( function() {
       this.autoSize();
+      var event = new CustomEvent( "framedContentChanged", {
+        detail: framedContent
+      });
+      this.dispatchEvent( event );
     }.bind( this ), 1 );
   },
 
+  _pendingContent: null,
+
   _updateFramedContent: function() {
-    if ( this.frameReady && this._contentUpdatedPending ) {
+    if ( this.frameReady && this._pendingContent != null ) {
       this.$.iframe.contentWindow.postMessage({
         message: "setContent",
-        content: this.content
+        content: this._pendingContent
       }, "*" );
-      this._contentUpdatedPending = false;
+      this._pendingContent = null;
     }
   }
 
