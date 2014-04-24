@@ -1,0 +1,17 @@
+{
+  "name": "basic-seamless-iframe",
+  "description": "A borderless iframe that automatically makes itself as tall as the contained page",
+  "version": "0.0.1",
+  "license": "MIT",
+  "main": "basic-seamless-iframe.html",
+  "dependencies": {
+    "polymer": "Polymer/polymer#master"
+  },
+  "keywords": [
+    "basic-web-components",
+    "web-components"
+  ],
+  "ignore": [
+    "**/.*"
+  ]
+}
