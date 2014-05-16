@@ -31,12 +31,12 @@ communicate with this element.
   #iframe {
     border: none;
     display: block;
-    height: 0;
+    height: 100%;
     width: 100%;
   }
   </style>
 
-  <iframe id="iframe" src="{{src}}" scrolling="no"></iframe>
+  <iframe id="iframe" src="{{src}}"></iframe>
 
 </template>
 
@@ -44,9 +44,8 @@ communicate with this element.
 Polymer( "basic-seamless-iframe", {
 
   // TODO: This currently inspects the framed page, which is only permissible
-  // on pages of the same domain. In cases where the framed page is hosting a
-  // basic-autosize-iframe-content element, that element should also share its
-  // height across the frame boundary when it does its postMessage.
+  // on pages of the same domain. The basic-framed-content component shares its
+  // height; use that instead of inspect the height directly.
   autoSize: function() {
     var page = this.$.iframe.contentDocument.querySelector( "html" );
     if ( page ) {
@@ -54,7 +53,8 @@ Polymer( "basic-seamless-iframe", {
       // scrollHeight, but Firefox always returns a scrollHeight of 0.
       // offsetHeight seems to work better.
       var frameHeight = Math.ceil( page.offsetHeight ) + "px";
-      this.$.iframe.style.height = frameHeight;
+      this.style.height = frameHeight;
+      this.$.iframe.setAttribute( "scrolling", "no" );
     }
   },
 
@@ -77,8 +77,10 @@ Polymer( "basic-seamless-iframe", {
       }
     }.bind( this ));
 
-    // TODO: Reraise the load event.
-    // this.dispatchEvent( new CustomEvent( "load" ));
+    // Raise our own load event when the frame loads.
+    this.$.iframe.addEventListener( "load", function() {
+      this.dispatchEvent( new CustomEvent( "load" ));
+    }.bind( this ));
 
     window.addEventListener( "message", function( event ) {
       switch ( event.data && event.data.message ) {
