@@ -1,17 +1,28 @@
 <!--
-An iframe that automatically makes itself as tall as the contained page.
+An iframe that automatically communicates with a corresponding element on a
+framed page to enable common cross-frame communication scenarios.
 
 Note: modern iframes should support a "seamless" attribute that should do
 exactly what this element does. However, none of the browsers that claim to
 support it seem to do anything really useful with it. (E.g., they just hide the
 frame border, but don't resize the frame.)
 
-If the framed page contains a basic-framed-content element, this element will
-communicate with that inner element. Setting the framedContent property on this
-element will pass the content to the basic-framed-content element. If the inner
-basic-framed-content's content changes, it will let this element know, and this
-element will raise a framedContentChanged event.
+Various web sources recommend that a frame and its contained page communicate by
+means of window.postMessage(), but this is somewhat cumbersome to set up. This
+component and its companion, basic-framed-content, use a postMessage()-based
+solution to transparently handle that communication.
 
+If the framed page contains a basic-framed-content element, then:
+
+1: The outer basic-seamless-iframe can set and inspect the content of the
+   inner basic-framed-content element.
+2: The outer basic-seamless-iframe can adjust its height to exactly contain the
+   inner basic-framed-content element.
+
+@element basic-seamless-iframe
+-->
+
+<!--
 TODO: Extend an HTML iframe element directly?
 TODO: Give contained pages on the same domain more direct ways to cooperatively
 communicate with this element.
@@ -43,18 +54,28 @@ communicate with this element.
 <script>
 Polymer( "basic-seamless-iframe", {
 
+  /**
+   * Fired when a basic-framed-content element within the framed page has its
+   * content change.
+   *
+   * @event framedContentChanged
+   * @param Object detail The new content of the basic-framed-content element.
+   */
+
+  /**
+   * If true, the element will automatically adjust its height to match that of
+   * a contained basic-framed-content element on the framed page.
+   * 
+   * @attribute autoSize
+   * @type boolean
+   * @default true
+   */
   autoSize: true,
 
   autoSizeChanged: function() {
     if ( this.autoSize ) {
       this._postMessageToFrame( "requestHeight" );      
     }
-  },
-
-  frameReady: false,
-
-  get iframe() {
-    return this.$.iframe;
   },
 
   ready: function() {
@@ -94,7 +115,7 @@ Polymer( "basic-seamless-iframe", {
           this._framedHeightChanged( event.data.detail );
 
         case "framedPolymerReady":
-          this.frameReady = true;
+          this._frameReady = true;
           this._updateFramedContent();
 
       }
@@ -108,6 +129,12 @@ Polymer( "basic-seamless-iframe", {
     this._frameOrigin = a.origin;
   },
 
+  /**
+   * Set the content of a basic-framed-content element within the framed page.
+   *
+   * @method setFramedContent
+   * @param content The content to pass to the basic-framed-content element.
+   */
   setFramedContent: function( content ) {
     this._pendingContent = content;
     this._updateFramedContent();
@@ -129,11 +156,13 @@ Polymer( "basic-seamless-iframe", {
     }
   },
 
+  _frameReady: false,
+
   // Content we want to write to the framed page when it's ready for it.
   _pendingContent: null,
 
   _updateFramedContent: function() {
-    if ( this.frameReady && this._pendingContent != null ) {
+    if ( this._frameReady && this._pendingContent != null ) {
       this._postMessageToFrame( "setContent", this._pendingContent );
       this._pendingContent = null;
     }

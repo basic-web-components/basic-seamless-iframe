@@ -1,6 +1,6 @@
 {
   "name": "basic-seamless-iframe",
-  "description": "A borderless iframe that automatically makes itself as tall as the contained page",
+  "description": "Communicates across a frame boundary to an inner element",
   "version": "0.0.1",
   "license": "MIT",
   "main": "basic-seamless-iframe.html",
