@@ -19,7 +19,7 @@ communicate with this element.
 
 <link rel="import" href="../polymer/polymer.html">
 
-<polymer-element name="basic-seamless-iframe">
+<polymer-element name="basic-seamless-iframe" attributes="autoSize src">
 
 <template>
 
@@ -43,6 +43,8 @@ communicate with this element.
 <script>
 Polymer( "basic-seamless-iframe", {
 
+  autoSize: true,
+
   autoSizeChanged: function() {
     if ( this.autoSize ) {
       this._postMessageToFrame( "requestHeight" );      
@@ -53,17 +55,6 @@ Polymer( "basic-seamless-iframe", {
 
   get iframe() {
     return this.$.iframe;
-  },
-
-  publish: {
-    autoSize: {
-      value: true,
-      reflect: true
-    },
-    src: {
-      value: "",
-      reflect: true
-    }
   },
 
   ready: function() {
@@ -80,7 +71,20 @@ Polymer( "basic-seamless-iframe", {
       this.dispatchEvent( new CustomEvent( "load" ));
     }.bind( this ));
 
+    // Listen for messages posted by the framed page.
     window.addEventListener( "message", function( event ) {
+      // For security reasons, only handle messages with the same origin as the
+      // framed page.
+      if  ( event.origin !== this._frameOrigin ) {
+        return;
+      }
+      // We also check that the message (ostensibly) comes from the framed page.
+      // This can be spoofed, but isn't intended as a security measure. Rather,
+      // it's just a way that this component can indentify which messages are
+      // meant for it.
+      if ( !event.data || event.data.source !== this.$.iframe.src ) {
+        return;
+      }
       switch ( event.data && event.data.message ) {
 
         case "framedContentResponse":
@@ -95,6 +99,13 @@ Polymer( "basic-seamless-iframe", {
 
       }
     }.bind( this ), false );
+  },
+
+  srcChanged: function() {
+    // Extract the origin from the src using an anchor tag as a parser.
+    var a = document.createElement( "a" );
+    a.href = this.src;
+    this._frameOrigin = a.origin;
   },
 
   setFramedContent: function( content ) {
@@ -134,7 +145,7 @@ Polymer( "basic-seamless-iframe", {
     if ( detail ) {
       payload.detail = detail;
     }
-    this.$.iframe.contentWindow.postMessage( payload, "*" );
+    this.$.iframe.contentWindow.postMessage( payload, this._frameOrigin );
   }
 
 });
