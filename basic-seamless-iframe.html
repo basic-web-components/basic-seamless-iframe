@@ -19,7 +19,7 @@ communicate with this element.
 
 <link rel="import" href="../polymer/polymer.html">
 
-<polymer-element name="basic-seamless-iframe" attributes="src">
+<polymer-element name="basic-seamless-iframe">
 
 <template>
 
@@ -36,31 +36,17 @@ communicate with this element.
   }
   </style>
 
-  <iframe id="iframe" src="{{src}}"></iframe>
+  <iframe id="iframe" src="{{src}}" scrollbars="no"></iframe>
 
 </template>
 
 <script>
 Polymer( "basic-seamless-iframe", {
 
-  // TODO: This currently inspects the framed page, which is only permissible
-  // on pages of the same domain. The basic-framed-content component shares its
-  // height; use that instead of inspect the height directly.
-  // autoSize: function() {
-  //   var page = this.$.iframe.contentDocument.querySelector( "html" );
-  //   if ( page ) {
-  //     // To get the page height, some StackOverflow solutions suggest using
-  //     // scrollHeight, but Firefox always returns a scrollHeight of 0.
-  //     // offsetHeight seems to work better.
-  //     var frameHeight = Math.ceil( page.offsetHeight ) + "px";
-  //     this.style.height = frameHeight;
-  //     this.$.iframe.setAttribute( "scrolling", "no" );
-  //   }
-  // },
-
-  setFramedContent: function( content ) {
-    this._pendingContent = content;
-    this._updateFramedContent();
+  autoSizeChanged: function() {
+    if ( this.autoSize ) {
+      this._postMessageToFrame( "requestHeight" );      
+    }
   },
 
   frameReady: false,
@@ -69,10 +55,22 @@ Polymer( "basic-seamless-iframe", {
     return this.$.iframe;
   },
 
+  publish: {
+    autoSize: {
+      value: true,
+      reflect: true
+    },
+    src: {
+      value: "",
+      reflect: true
+    }
+  },
+
   ready: function() {
     window.addEventListener( "resize", function() {
-      if ( this.clientWidth !== this._clientWidth ) {
-        this.autoSize();
+      if ( this.autoSize && this.clientWidth !== this._clientWidth ) {
+        // Ping framed content for its new -- potentially changed -- height.
+        this._postMessageToFrame( "requestHeight" );
         this._clientWidth = this.clientWidth;
       }
     }.bind( this ));
@@ -85,8 +83,11 @@ Polymer( "basic-seamless-iframe", {
     window.addEventListener( "message", function( event ) {
       switch ( event.data && event.data.message ) {
 
-        case "framedContentChanged":
-          this._framedContentChanged( event.data.content, event.data.height );
+        case "framedContentResponse":
+          this._framedContentChanged( event.data.detail );
+
+        case "framedHeightResponse":
+          this._framedHeightChanged( event.data.detail );
 
         case "framedPolymerReady":
           this.frameReady = true;
@@ -96,35 +97,44 @@ Polymer( "basic-seamless-iframe", {
     }.bind( this ), false );
   },
 
+  setFramedContent: function( content ) {
+    this._pendingContent = content;
+    this._updateFramedContent();
+  },
+
   // Track the last known width of this element.
   _clientWidth: null,
 
-  _framedContentChanged: function( framedContent, framedHeight ) {
-    // HACK: Even thought the frame says it's done loading, if we inspect the
-    // height immediately, it's close but not quite right. Something still
-    // hasn't finished rendering (perhaps Polymer's still upgrading elements?).
-    // We give the frame another event tick to finish rendering before we do our
-    // auto-size.
-    // setTimeout( function() {
-    //   this.autoSize();
-    this.style.height = framedHeight + "px";
+  _framedContentChanged: function( framedContent ) {
     var event = new CustomEvent( "framedContentChanged", {
       detail: framedContent
     });
     this.dispatchEvent( event );
-    // }.bind( this ), 1 );
+  },
+
+  _framedHeightChanged: function( framedHeight ) {
+    if ( this.autoSize ) {
+      this.style.height = framedHeight + "px";
+    }
   },
 
   _pendingContent: null,
 
   _updateFramedContent: function() {
     if ( this.frameReady && this._pendingContent != null ) {
-      this.$.iframe.contentWindow.postMessage({
-        message: "setContent",
-        content: this._pendingContent
-      }, "*" );
+      this._postMessageToFrame( "setContent", this._pendingContent );
       this._pendingContent = null;
     }
+  },
+
+  _postMessageToFrame: function( message, detail ) {
+    var payload = {
+      message: message
+    };
+    if ( detail ) {
+      payload.detail = detail;
+    }
+    this.$.iframe.contentWindow.postMessage( payload, "*" );
   }
 
 });
