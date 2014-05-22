@@ -21,8 +21,7 @@ body {
 }
 
 #frame {
-  border: 1px solid gray;
-  box-sizing: border-box;
+  border: 1px dotted gray;
 }
 </style>
 
@@ -31,7 +30,7 @@ window.addEventListener( "polymer-ready", function() {
   var frame = document.querySelector( "#frame" );
   var contentCopy = document.querySelector( "#contentCopy" );
   frame.addEventListener( "framedContentChanged", function( event ) {
-    contentCopy.innerHTML = event.detail;
+    contentCopy.innerHTML = event.detail.trim();
   });
 });
 </script>
@@ -45,9 +44,11 @@ window.addEventListener( "polymer-ready", function() {
   <basic-seamless-iframe id="frame" src="framed.html">
   </basic-seamless-iframe>
   <p>
-    The current interesting content inside the frame is:
+    Even though this outer page can't normally inspect the contents of the 
+    framed page above, in this case the framed page hosts an instance of the
+    basic-framed-content component. So we can see that the content of the framed
+    page is: "<span id="contentCopy"></span>"
   </p>
-  <div id="contentCopy"></div>
 </body>
 
 </html>

@@ -46,17 +46,17 @@ Polymer( "basic-seamless-iframe", {
   // TODO: This currently inspects the framed page, which is only permissible
   // on pages of the same domain. The basic-framed-content component shares its
   // height; use that instead of inspect the height directly.
-  autoSize: function() {
-    var page = this.$.iframe.contentDocument.querySelector( "html" );
-    if ( page ) {
-      // To get the page height, some StackOverflow solutions suggest using
-      // scrollHeight, but Firefox always returns a scrollHeight of 0.
-      // offsetHeight seems to work better.
-      var frameHeight = Math.ceil( page.offsetHeight ) + "px";
-      this.style.height = frameHeight;
-      this.$.iframe.setAttribute( "scrolling", "no" );
-    }
-  },
+  // autoSize: function() {
+  //   var page = this.$.iframe.contentDocument.querySelector( "html" );
+  //   if ( page ) {
+  //     // To get the page height, some StackOverflow solutions suggest using
+  //     // scrollHeight, but Firefox always returns a scrollHeight of 0.
+  //     // offsetHeight seems to work better.
+  //     var frameHeight = Math.ceil( page.offsetHeight ) + "px";
+  //     this.style.height = frameHeight;
+  //     this.$.iframe.setAttribute( "scrolling", "no" );
+  //   }
+  // },
 
   setFramedContent: function( content ) {
     this._pendingContent = content;
@@ -86,12 +86,11 @@ Polymer( "basic-seamless-iframe", {
       switch ( event.data && event.data.message ) {
 
         case "framedContentChanged":
-          this._framedContentChanged( event.data.content );
+          this._framedContentChanged( event.data.content, event.data.height );
 
         case "framedPolymerReady":
           this.frameReady = true;
           this._updateFramedContent();
-          this.autoSize();
 
       }
     }.bind( this ), false );
@@ -100,19 +99,20 @@ Polymer( "basic-seamless-iframe", {
   // Track the last known width of this element.
   _clientWidth: null,
 
-  _framedContentChanged: function( framedContent ) {
+  _framedContentChanged: function( framedContent, framedHeight ) {
     // HACK: Even thought the frame says it's done loading, if we inspect the
     // height immediately, it's close but not quite right. Something still
     // hasn't finished rendering (perhaps Polymer's still upgrading elements?).
     // We give the frame another event tick to finish rendering before we do our
     // auto-size.
-    setTimeout( function() {
-      this.autoSize();
-      var event = new CustomEvent( "framedContentChanged", {
-        detail: framedContent
-      });
-      this.dispatchEvent( event );
-    }.bind( this ), 1 );
+    // setTimeout( function() {
+    //   this.autoSize();
+    this.style.height = framedHeight + "px";
+    var event = new CustomEvent( "framedContentChanged", {
+      detail: framedContent
+    });
+    this.dispatchEvent( event );
+    // }.bind( this ), 1 );
   },
 
   _pendingContent: null,
