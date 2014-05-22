@@ -29,6 +29,7 @@ body {
 window.addEventListener( "polymer-ready", function() {
   var frame = document.querySelector( "#frame" );
   var contentCopy = document.querySelector( "#contentCopy" );
+  /* Listen for content changes within the framed page. */
   frame.addEventListener( "framedContentChanged", function( event ) {
     contentCopy.innerHTML = event.detail.trim();
   });
@@ -41,8 +42,7 @@ window.addEventListener( "polymer-ready", function() {
   <p>
     The page below is hosted in an instance of basic-seamless-iframe:
   </p>
-  <basic-seamless-iframe id="frame" src="framed.html">
-  </basic-seamless-iframe>
+  <basic-seamless-iframe id="frame" src="framed.html"></basic-seamless-iframe>
   <p>
     Even though this outer page can't normally inspect the contents of the 
     framed page above, in this case the framed page hosts an instance of the
