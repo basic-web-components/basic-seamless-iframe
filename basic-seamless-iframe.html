@@ -1,9 +1,10 @@
 <!--
-An iframe that automatically communicates with a corresponding element on a
-framed page to enable common cross-frame communication scenarios. For example,
-this component can automatically adjust its height to match that of the framed
-page. (This replicates the intent of the standard HTML "seamless" iframe
-attribute, which is unfortunately implemented poorly on most browsers.)
+This component frames a page, potentially on a separate domain, and then
+automatically communicates with a corresponding element on a framed page to
+enable common cross-frame communication scenarios. For example, this component
+can automatically adjust its height to match that of the framed page. (This
+replicates the intent of the standard HTML "seamless" iframe attribute, which is
+unfortunately implemented poorly on most browsers.)
 
 This component can also be used to let you pass content back and forth between
 the framed page and the outer page.
@@ -12,8 +13,7 @@ Such scenarios are normally blocked whenever an iframe hosts a page on a
 different domain. Various web sources recommend that a frame and its contained
 page communicate by means of window.postMessage(), but this is somewhat
 cumbersome to set up. This component and its companion, basic-framed-content,
-transparently set up and handle that postMessage-based communication, so that
-you don't have to worry about.
+transparently set up and handle that postMessage-based communication for you.
 
 If the framed page contains a basic-framed-content element, then:
 
