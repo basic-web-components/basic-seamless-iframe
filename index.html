@@ -40,19 +40,16 @@ window.addEventListener( "polymer-ready", function() {
 
 <body unresolved>
   <p>
-    The rectangle below is a separate page:
+    The rectangle below is a separate, framed page:
   </p>
   <basic-seamless-iframe id="frame" src="framed.html"></basic-seamless-iframe>
   <p>
-    If the outer page (here) and the framed page (within the rectangle) are on
-    different domains, they aren't normally permitted to communicate directly.
-    In this demo, however, the rectangle above is an instance of
-    &lt;basic-seamless-iframe&gt;, and the framed page hosts an instance of the
-    companion component &lt;basic-framed-content&gt;. These two components
-    cooperate across the frame boundary. This lets the outer page see that the
-    content of the framed page is:
-    "<span id="contentCopy"></span>". This also lets the frame automatically
-    size itself to the content of the framed page.
+    An instance of &lt;basic-seamless-iframe&gt; here in the outer page is
+    communicating across the frame boundary with an instance of
+    &lt;basic-framed-content&gt; in the framed page.
+    This lets the outer page see that the content of the framed page is:
+    "<span id="contentCopy"></span>" This also lets the frame rectangle
+    automatically size itself to the content of the framed page.
   </p>
 </body>
 
