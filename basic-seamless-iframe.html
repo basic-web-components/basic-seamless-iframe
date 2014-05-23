@@ -1,16 +1,19 @@
 <!--
 An iframe that automatically communicates with a corresponding element on a
-framed page to enable common cross-frame communication scenarios.
+framed page to enable common cross-frame communication scenarios. For example,
+this component can automatically adjust its height to match that of the framed
+page. (This replicates the intent of the standard HTML "seamless" iframe
+attribute, which is unfortunately implemented poorly on most browsers.)
 
-Note: modern iframes should support a "seamless" attribute that should do
-exactly what this element does. However, none of the browsers that claim to
-support it seem to do anything really useful with it. (E.g., they just hide the
-frame border, but don't resize the frame.)
+This component can also be used to let you pass content back and forth between
+the framed page and the outer page.
 
-Various web sources recommend that a frame and its contained page communicate by
-means of window.postMessage(), but this is somewhat cumbersome to set up. This
-component and its companion, basic-framed-content, use a postMessage()-based
-solution to transparently handle that communication.
+Such scenarios are normally blocked whenever an iframe hosts a page on a
+different domain. Various web sources recommend that a frame and its contained
+page communicate by means of window.postMessage(), but this is somewhat
+cumbersome to set up. This component and its companion, basic-framed-content,
+transparently set up and handle that postMessage-based communication, so that
+you don't have to worry about.
 
 If the framed page contains a basic-framed-content element, then:
 
@@ -56,8 +59,8 @@ communicate with this element.
 Polymer( "basic-seamless-iframe", {
 
   /**
-   * Fired when a basic-framed-content element within the framed page has its
-   * content change.
+   * Fired when a basic-framed-content element within the framed page has had
+   * its content change.
    *
    * @event framedContentChanged
    * @param Object detail The new content of the basic-framed-content element.
@@ -131,7 +134,8 @@ Polymer( "basic-seamless-iframe", {
   },
 
   /**
-   * Set the content of a basic-framed-content element within the framed page.
+   * Pass the indicated content to the basic-framed-content element within the
+   * framed page.
    *
    * @method setFramedContent
    * @param content The content to pass to the basic-framed-content element.
