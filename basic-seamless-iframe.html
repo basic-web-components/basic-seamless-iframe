@@ -67,6 +67,16 @@ Polymer( "basic-seamless-iframe", {
    */
 
   /**
+   * The page to show in the iframe.
+   *
+   * For security purposes, this URL needs to exactly match the URL which will
+   * returned by the server. E.g., if the server will return a trailing slash,
+   * this URL should include a trailing slash to exactly match it.
+   *
+   * @attribute src
+   */
+
+  /**
    * If true, the element will automatically adjust its height to match that of
    * a contained basic-framed-content element on the framed page.
    * 
