@@ -114,13 +114,16 @@ Polymer( "basic-seamless-iframe", {
 
         case "framedContentResponse":
           this._framedContentChanged( event.data.detail );
+          break;
 
         case "framedHeightResponse":
           this._framedHeightChanged( event.data.detail );
+          break;
 
         case "framedPolymerReady":
           this._frameReady = true;
           this._updateFramedContent();
+          break;
 
       }
     }.bind( this ), false );
