@@ -143,7 +143,16 @@ Polymer( "basic-seamless-iframe", {
     // Extract the origin from the src using an anchor tag as a parser.
     var a = document.createElement( "a" );
     a.href = this.src;
-    this._frameOrigin = a.origin;
+    var origin = a.origin;
+    if ( origin == undefined ) {
+      /* IE 10/11 links don't expose an origin property. Get it ourselves. */
+      var originRegex = /(.*\/\/[^\/]+)\//; /* Everything up to first slash in path. */
+      var match = originRegex.exec( a.href );
+      if ( match ) {
+        origin = match[ 1 ];
+      }
+    }
+    this._frameOrigin = origin;
   },
 
   /**
