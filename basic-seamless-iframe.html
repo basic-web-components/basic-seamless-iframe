@@ -41,12 +41,14 @@ communicate with this element.
   <style>
   :host {
     display: block;
+    position: relative;
   }
 
   #iframe {
     border: none;
     display: block;
     height: 100%;
+    position: absolute;
     width: 100%;
   }
   </style>
@@ -179,7 +181,6 @@ Polymer( "basic-seamless-iframe", {
 
   _framedHeightChanged: function( framedHeight ) {
     if ( this.autoSize ) {
-      this.style.height = 0;
       this.style.minHeight = framedHeight + "px";
     }
   },
