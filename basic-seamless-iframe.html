@@ -179,7 +179,8 @@ Polymer( "basic-seamless-iframe", {
 
   _framedHeightChanged: function( framedHeight ) {
     if ( this.autoSize ) {
-      this.style.height = framedHeight + "px";
+      this.style.height = 0;
+      this.style.minHeight = framedHeight + "px";
     }
   },
 
