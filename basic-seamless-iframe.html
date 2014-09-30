@@ -22,6 +22,9 @@ If the framed page contains a basic-framed-content element, then:
 2. The outer basic-seamless-iframe can adjust its height to exactly contain the
    inner basic-framed-content element.
 
+Note: This component does not currently support having two instances on the
+same document that frame the same page.
+
 @element basic-seamless-iframe
 @demo ../packages/sample/basic-seamless-iframe/index.html
 -->
@@ -30,6 +33,10 @@ If the framed page contains a basic-framed-content element, then:
 TODO: Extend an HTML iframe element directly?
 TODO: Give contained pages on the same domain more direct ways to cooperatively
 communicate with this element.
+TODO: Allow two instances of this component to frame the same page. This
+requires coming up with unique way identify the content component; the code
+currently uses frame src for that purpose, but that won't work if two frames
+are showing the same page.
 -->
 
 <link rel="import" href="../polymer/polymer.html">
@@ -66,6 +73,13 @@ Polymer({
    *
    * @event framedContentChanged
    * @param Object detail The new content of the basic-framed-content element.
+   */
+
+  /**
+   * Fired when a basic-framed-content element has completed loading its
+   * components and raised its polymer-ready event.
+   *
+   * @event framedPolymerReady
    */
 
   /**
@@ -133,12 +147,20 @@ Polymer({
           break;
 
         case "framedPolymerReady":
-          this._frameReady = true;
-          this._updateFramedContent();
+          this._framedPolymerReady();
           break;
 
       }
     }.bind( this ), false );
+  },
+
+  /**
+   * Reload the content of the frame.
+   *
+   * @method reload
+   */
+  reload: function() {
+    this.$.iframe.contentWindow.location.reload();
   },
 
   srcChanged: function() {
@@ -183,6 +205,13 @@ Polymer({
     if ( this.autoSize ) {
       this.style.minHeight = framedHeight + "px";
     }
+  },
+
+  _framedPolymerReady: function() {
+    this._frameReady = true;
+    var event = new CustomEvent( "framedPolymerReady" );
+    this.dispatchEvent( event );   
+    this._updateFramedContent();    
   },
 
   _frameReady: false,
