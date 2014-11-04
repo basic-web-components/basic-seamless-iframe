@@ -160,7 +160,10 @@ Polymer({
    * @method reload
    */
   reload: function() {
-    this.$.iframe.contentWindow.location.reload();
+    // We'd like to just invoke this.$.iframe.contentWindow.location.reload().
+    // However, as of 11/3/2014, IE chokes on that. We workaround that by
+    // forcing the src on the frame again, which reloads the frame.
+    this.$.iframe.src = this.src;
   },
 
   srcChanged: function() {
