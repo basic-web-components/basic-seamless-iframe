@@ -233,7 +233,7 @@ Polymer({
     var payload = {
       message: message
     };
-    if ( detail ) {
+    if ( detail != null ) {
       payload.detail = detail;
     }
     this.$.iframe.contentWindow.postMessage( payload, this._frameOrigin );
