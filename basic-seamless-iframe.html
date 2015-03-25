@@ -103,55 +103,55 @@ Polymer({
   autoSize: true,
 
   autoSizeChanged: function() {
-    if ( this.autoSize ) {
-      this._postMessageToFrame( "requestHeight" );      
+    if (this.autoSize) {
+      this._postMessageToFrame('requestHeight');
     }
   },
 
   ready: function() {
-    window.addEventListener( "resize", function() {
-      if ( this.autoSize && this.clientWidth !== this._clientWidth ) {
+    window.addEventListener('resize', function() {
+      if (this.autoSize && this.clientWidth !== this._clientWidth) {
         // Ping framed content for its new -- potentially changed -- height.
-        this._postMessageToFrame( "requestHeight" );
+        this._postMessageToFrame('requestHeight');
         this._clientWidth = this.clientWidth;
       }
-    }.bind( this ));
+    }.bind(this));
 
     // Raise our own load event when the frame loads.
-    this.$.iframe.addEventListener( "load", function() {
-      this.dispatchEvent( new CustomEvent( "load" ));
-    }.bind( this ));
+    this.$.iframe.addEventListener('load', function() {
+      this.dispatchEvent(new CustomEvent('load'));
+    }.bind(this));
 
     // Listen for messages posted by the framed page.
-    window.addEventListener( "message", function( event ) {
+    window.addEventListener('message', function(event) {
       // For security reasons, only handle messages with the same origin as the
       // framed page.
-      if  ( event.origin !== this._frameOrigin ) {
+      if  (event.origin !== this._frameOrigin) {
         return;
       }
       // We also check that the message (ostensibly) comes from the framed page.
       // This can be spoofed, but isn't intended as a security measure. Rather,
       // it's just a way that this component can indentify which messages are
       // meant for it.
-      if ( !event.data || event.data.source !== this.$.iframe.src ) {
+      if (!event.data || event.data.source !== this.$.iframe.src) {
         return;
       }
-      switch ( event.data && event.data.message ) {
+      switch (event.data && event.data.message) {
 
-        case "framedContentResponse":
-          this._framedContentChanged( event.data.detail );
+        case 'framedContentResponse':
+          this._framedContentChanged(event.data.detail);
           break;
 
-        case "framedHeightResponse":
-          this._framedHeightChanged( event.data.detail );
+        case 'framedHeightResponse':
+          this._framedHeightChanged(event.data.detail);
           break;
 
-        case "framedPolymerReady":
+        case 'framedPolymerReady':
           this._framedPolymerReady();
           break;
 
       }
-    }.bind( this ), false );
+    }.bind(this), false);
   },
 
   /**
@@ -168,15 +168,15 @@ Polymer({
 
   srcChanged: function() {
     // Extract the origin from the src using an anchor tag as a parser.
-    var a = document.createElement( "a" );
+    var a = document.createElement('a');
     a.href = this.src;
     var origin = a.origin;
-    if ( origin == undefined ) {
+    if (origin == undefined) {
       /* IE 10/11 links don't expose an origin property. Get it ourselves. */
       var originRegex = /(.*\/\/[^\/]+)\//; /* Everything up to first slash in path. */
-      var match = originRegex.exec( a.href );
-      if ( match ) {
-        origin = match[ 1 ];
+      var match = originRegex.exec(a.href);
+      if (match) {
+        origin = match[1];
       }
     }
     this._frameOrigin = origin;
@@ -189,7 +189,7 @@ Polymer({
    * @method setFramedContent
    * @param content The content to pass to the basic-framed-content element.
    */
-  setFramedContent: function( content ) {
+  setFramedContent: function(content) {
     this._pendingContent = content;
     this._updateFramedContent();
   },
@@ -197,23 +197,23 @@ Polymer({
   // Track the last known width of this element.
   _clientWidth: null,
 
-  _framedContentChanged: function( framedContent ) {
-    var event = new CustomEvent( "framedContentChanged", {
+  _framedContentChanged: function(framedContent) {
+    var event = new CustomEvent('framedContentChanged', {
       detail: framedContent
     });
-    this.dispatchEvent( event );
+    this.dispatchEvent(event);
   },
 
-  _framedHeightChanged: function( framedHeight ) {
-    if ( this.autoSize ) {
-      this.style.minHeight = framedHeight + "px";
+  _framedHeightChanged: function(framedHeight) {
+    if (this.autoSize) {
+      this.style.minHeight = framedHeight + 'px';
     }
   },
 
   _framedPolymerReady: function() {
     this._frameReady = true;
-    var event = new CustomEvent( "framedPolymerReady" );
-    this.dispatchEvent( event );   
+    var event = new CustomEvent('framedPolymerReady');
+    this.dispatchEvent(event);
     this._updateFramedContent();    
   },
 
@@ -223,20 +223,20 @@ Polymer({
   _pendingContent: null,
 
   _updateFramedContent: function() {
-    if ( this._frameReady && this._pendingContent != null ) {
-      this._postMessageToFrame( "setContent", this._pendingContent );
+    if (this._frameReady && this._pendingContent != null) {
+      this._postMessageToFrame('setContent', this._pendingContent);
       this._pendingContent = null;
     }
   },
 
-  _postMessageToFrame: function( message, detail ) {
+  _postMessageToFrame: function(message, detail) {
     var payload = {
       message: message
     };
-    if ( detail != null ) {
+    if (detail != null) {
       payload.detail = detail;
     }
-    this.$.iframe.contentWindow.postMessage( payload, this._frameOrigin );
+    this.$.iframe.contentWindow.postMessage(payload, this._frameOrigin);
   }
 
 });
