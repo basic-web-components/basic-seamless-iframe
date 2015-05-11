@@ -1,11 +1,11 @@
 {
   "name": "basic-seamless-iframe",
   "description": "Communicates across a frame boundary to an inner element",
-  "version": "0.0.1",
+  "version": "0.5.0",
   "license": "MIT",
   "main": "basic-seamless-iframe.html",
   "dependencies": {
-    "polymer": "Polymer/polymer#master"
+    "polymer": "Polymer/polymer#^0.5.5"
   },
   "keywords": [
     "basic-web-components",
