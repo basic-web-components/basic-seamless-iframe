@@ -8,15 +8,14 @@ suite('basic', function() {
     container.innerHTML = '';
   });
 
-  /* TODO
-  test('to do: tests', function(done) {
+  // TODO
+  test.skip('receives content from framed page', function(done) {
     var fixture = document.createElement('basic-seamless-iframe');
     container.appendChild(fixture);
     flush(function() {
       done();
     });
   });
-  */
 
 });
 

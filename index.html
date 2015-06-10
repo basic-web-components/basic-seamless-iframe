@@ -2,39 +2,38 @@
 <html>
 <head>
 
-<meta charset="utf-8">
-<title>basic-seamless-iframe</title>
+  <meta charset="utf-8">
+  <title>basic-seamless-iframe</title>
+  <script src="../webcomponentsjs/webcomponents-lite.js"></script>
+  <link rel="import" href="basic-seamless-iframe.html">
 
-<script src="../webcomponentsjs/webcomponents.js"></script>
-<link rel="import" href="basic-seamless-iframe.html">
+  <style>
+  body,
+  button,
+  input {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 15px;
+  }
 
-<style>
-body,
-button,
-input {
-  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-  font-size: 15px;
-}
+  body {
+    margin: 0.5in;
+  }
 
-body {
-  margin: 0.5in;
-}
+  #frame {
+    border: 1px dotted gray;
+  }
+  </style>
 
-#frame {
-  border: 1px dotted gray;
-}
-</style>
-
-<script>
-window.addEventListener( "polymer-ready", function() {
-  var frame = document.querySelector( "#frame" );
-  var contentCopy = document.querySelector( "#contentCopy" );
-  /* Listen for content changes within the framed page. */
-  frame.addEventListener( "framedContentChanged", function( event ) {
-    contentCopy.innerHTML = event.detail.trim();
+  <script>
+  window.addEventListener('WebComponentsReady', function() {
+    var frame = document.querySelector('#frame');
+    var contentCopy = document.querySelector('#contentCopy');
+    /* Listen for content changes within the framed page. */
+    frame.addEventListener('framedContentChanged', function(event) {
+      contentCopy.innerHTML = event.detail.trim();
+    });
   });
-});
-</script>
+  </script>
 
 </head>
 

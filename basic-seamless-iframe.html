@@ -41,9 +41,7 @@ are showing the same page.
 
 <link rel="import" href="../polymer/polymer.html">
 
-<polymer-element name="basic-seamless-iframe" attributes="autoSize src">
-
-<template>
+<dom-module id="basic-seamless-iframe">
 
   <style>
   :host {
@@ -60,9 +58,11 @@ are showing the same page.
   }
   </style>
 
-  <iframe id="iframe" src="{{src}}" scrollbars="no"></iframe>
+  <template>
+    <iframe id="iframe" src="{{src}}" scrollbars="no"></iframe>
+  </template>
 
-</template>
+</dom-module>
 
 <script>
 Polymer({
@@ -79,32 +79,38 @@ Polymer({
    * Fired when a basic-framed-content element has completed loading its
    * components and raised its polymer-ready event.
    *
-   * @event framedPolymerReady
+   * @event framedWebComponentsReady
    */
 
-  /**
-   * The page to show in the iframe.
-   *
-   * For security purposes, this URL needs to exactly match the URL which will
-   * returned by the server. E.g., if the server will return a trailing slash,
-   * this URL should include a trailing slash to exactly match it.
-   *
-   * @attribute src
-   */
+  is: 'basic-seamless-iframe',
 
-  /**
-   * If true, the element will automatically adjust its height to match that of
-   * a contained basic-framed-content element on the framed page.
-   * 
-   * @attribute autoSize
-   * @type boolean
-   * @default true
-   */
-  autoSize: true,
+  properties: {
+    /**
+     * If true, the element will automatically adjust its height to match that
+     * of a contained basic-framed-content element on the framed page.
+     *
+     * @attribute autoSize
+     * @type boolean
+     * @default true
+     */
+    autoSize: {
+      observer: '_autoSizeChanged',
+      type: Boolean,
+      value: true
+    },
 
-  autoSizeChanged: function() {
-    if (this.autoSize) {
-      this._postMessageToFrame('requestHeight');
+    /**
+     * The page to show in the iframe.
+     *
+     * For security purposes, this URL needs to exactly match the URL which will
+     * returned by the server. E.g., if the server will return a trailing slash,
+     * this URL should include a trailing slash to exactly match it.
+     *
+     * @attribute src
+     */
+    src: {
+      observer: '_srcChanged',
+      type: String
     }
   },
 
@@ -146,8 +152,8 @@ Polymer({
           this._framedHeightChanged(event.data.detail);
           break;
 
-        case 'framedPolymerReady':
-          this._framedPolymerReady();
+        case 'framedWebComponentsReady':
+          this._framedWebComponentsReady();
           break;
 
       }
@@ -166,22 +172,6 @@ Polymer({
     this.$.iframe.src = this.src;
   },
 
-  srcChanged: function() {
-    // Extract the origin from the src using an anchor tag as a parser.
-    var a = document.createElement('a');
-    a.href = this.src;
-    var origin = a.origin;
-    if (origin == undefined) {
-      /* IE 10/11 links don't expose an origin property. Get it ourselves. */
-      var originRegex = /(.*\/\/[^\/]+)\//; /* Everything up to first slash in path. */
-      var match = originRegex.exec(a.href);
-      if (match) {
-        origin = match[1];
-      }
-    }
-    this._frameOrigin = origin;
-  },
-
   /**
    * Pass the indicated content to the basic-framed-content element within the
    * framed page.
@@ -192,6 +182,12 @@ Polymer({
   setFramedContent: function(content) {
     this._pendingContent = content;
     this._updateFramedContent();
+  },
+
+  _autoSizeChanged: function() {
+    if (this.autoSize) {
+      this._postMessageToFrame('requestHeight');
+    }
   },
 
   // Track the last known width of this element.
@@ -210,17 +206,33 @@ Polymer({
     }
   },
 
-  _framedPolymerReady: function() {
+  _framedWebComponentsReady: function() {
     this._frameReady = true;
-    var event = new CustomEvent('framedPolymerReady');
+    var event = new CustomEvent('framedWebComponentsReady');
     this.dispatchEvent(event);
-    this._updateFramedContent();    
+    this._updateFramedContent();
   },
 
   _frameReady: false,
 
   // Content we want to write to the framed page when it's ready for it.
   _pendingContent: null,
+
+  _srcChanged: function() {
+    // Extract the origin from the src using an anchor tag as a parser.
+    var a = document.createElement('a');
+    a.href = this.src;
+    var origin = a.origin;
+    if (origin == undefined) {
+      /* IE 10/11 links don't expose an origin property. Get it ourselves. */
+      var originRegex = /(.*\/\/[^\/]+)\//; /* Everything up to first slash in path. */
+      var match = originRegex.exec(a.href);
+      if (match) {
+        origin = match[1];
+      }
+    }
+    this._frameOrigin = origin;
+  },
 
   _updateFramedContent: function() {
     if (this._frameReady && this._pendingContent != null) {
@@ -230,6 +242,10 @@ Polymer({
   },
 
   _postMessageToFrame: function(message, detail) {
+    if (!this._frameOrigin) {
+      // Not ready to post yet.
+      return;
+    }
     var payload = {
       message: message
     };
@@ -241,5 +257,3 @@ Polymer({
 
 });
 </script>
-
-</polymer-element>
